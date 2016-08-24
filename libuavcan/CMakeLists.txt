@@ -21,6 +21,8 @@ message(STATUS "Debug build: ${DEBUG_BUILD}")
 
 project(libuavcan)
 
+find_program(PYTHON python)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(COMPILER_IS_GCC_COMPATIBLE 1)
 else ()
@@ -31,10 +33,10 @@ endif ()
 # DSDL compiler invocation
 # Probably output files should be saved into CMake output dir?
 #
-execute_process(COMMAND ./setup.py build WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dsdl_compiler)
+execute_process(COMMAND ${PYTHON} setup.py build WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dsdl_compiler)
 set(DSDLC_INPUTS "test/dsdl_test/root_ns_a" "test/dsdl_test/root_ns_b" "${CMAKE_CURRENT_SOURCE_DIR}/../dsdl/uavcan")
 set(DSDLC_OUTPUT "include/dsdlc_generated")
-add_custom_target(libuavcan_dsdlc dsdl_compiler/libuavcan_dsdlc ${DSDLC_INPUTS} -O${DSDLC_OUTPUT}
+add_custom_target(libuavcan_dsdlc ${PYTHON} dsdl_compiler/libuavcan_dsdlc ${DSDLC_INPUTS} -O${DSDLC_OUTPUT}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${DSDLC_OUTPUT})
 
@@ -68,7 +70,7 @@ add_dependencies(uavcan libuavcan_dsdlc)
 install(TARGETS uavcan                            DESTINATION lib)
 install(DIRECTORY include/uavcan                  DESTINATION include)
 install(DIRECTORY include/dsdlc_generated/uavcan  DESTINATION include)  # Generated and lib's .hpp
-install(CODE "execute_process(COMMAND ./setup.py install --record installed_files.log
+install(CODE "execute_process(COMMAND ${PYTHON} setup.py install --record installed_files.log
                               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dsdl_compiler)")
 
 #
